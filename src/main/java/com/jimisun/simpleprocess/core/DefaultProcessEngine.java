@@ -161,13 +161,14 @@ public class DefaultProcessEngine implements ProcessEngine {
             process.setProcessStatus(ProcessStatusEnum.COMPLETED);
         } else {
             //发布任务
-            releaseTask(processId, nextProcessNode.getActors(), nextProcessNode.getProcessNodeId(), nextProcessNode.getProcessNodeKey(), nextProcessNode.getProcessNodeName());
+            releaseTask(processId, nextProcessNode.getActors(), nextProcessNode.getProcessNodeId(), nextProcessNode.getProcessNodeKey(), nextProcessNode.getProcessNodeName(), nextProcessNode.getFormUrl(),
+                    "此处是执行任务的url地址", "此处是驳回任务的url地址");
         }
         processMapper.updateById(process);
         return true;
     }
 
-    private void releaseTask(String processId, String nextActors, String processNodeId, String nextNodeKey, String nextNodeName) {
+    private void releaseTask(String processId, String nextActors, String processNodeId, String nextNodeKey, String nextNodeName, String formUrl, String agreeAddress, String regectAddress) {
         List<String> actors = Arrays.asList(nextActors.split(","));
         for (String actor : actors) {
             ProcessTask processTask = new ProcessTask();
@@ -178,6 +179,9 @@ public class DefaultProcessEngine implements ProcessEngine {
             processTask.setProcessNodeName(nextNodeName);
             processTask.setProcessTaskStatus(ProcessTaskStatusEnum.CREATE);
             processTask.setAscription(actor);
+            processTask.setFormUrl(formUrl);
+            processTask.setTaskAgreeAddress(agreeAddress);
+            processTask.setTaskRejectAddress(regectAddress);
             processTaskMapper.insert(processTask);
         }
     }
@@ -207,7 +211,7 @@ public class DefaultProcessEngine implements ProcessEngine {
         process.setProcessStatus(ProcessStatusEnum.RUN);
         //如果上个节点不是开始节点则创建该节点等流程任务
         if (!preNode.getProcessNodeKey().equals("start")) {
-            releaseTask(processId, preNode.getActors(), preNode.getProcessNodeId(), preNode.getProcessNodeKey(), preNode.getProcessNodeName());
+            releaseTask(processId, preNode.getActors(), preNode.getProcessNodeId(), preNode.getProcessNodeKey(), preNode.getProcessNodeName(), preNode.getFormUrl(), "此处是执行任务的url地址", "此处是驳回任务的url地址");
         }
         processMapper.updateById(process);
         return true;
@@ -284,7 +288,7 @@ public class DefaultProcessEngine implements ProcessEngine {
         process.setProcessStatus(ProcessStatusEnum.RUN);
         //如果上个节点不是开始节点则创建该节点等流程任务
         if (!preNode.getProcessNodeKey().equals("start")) {
-            releaseTask(process.getProcessId(), preNode.getActors(), preNode.getProcessNodeId(), preNode.getProcessNodeKey(), preNode.getProcessNodeName());
+            releaseTask(process.getProcessId(), preNode.getActors(), preNode.getProcessNodeId(), preNode.getProcessNodeKey(), preNode.getProcessNodeName(), preNode.getFormUrl(), "此处是执行任务的url地址", "此处是驳回任务的url地址");
         }
         processMapper.updateById(process);
         return true;

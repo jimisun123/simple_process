@@ -59,4 +59,9 @@ public class ProcessNode {
      * 节点扩展属性
      */
     private String ext;
+
+    /**
+     * 节点表单地址
+     */
+    private String formUrl;
 }

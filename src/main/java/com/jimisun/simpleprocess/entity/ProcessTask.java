@@ -70,4 +70,19 @@ public class ProcessTask {
      * 任务数据
      */
     private String taskData;
+
+    /**
+     * 任务表单地址
+     */
+    private String formUrl;
+
+    /**
+     * 执行任务地址
+     */
+    private String taskAgreeAddress;
+
+    /**
+     * 驳回任务地址
+     */
+    private String taskRejectAddress;
 }
