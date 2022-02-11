@@ -85,4 +85,9 @@ public class ProcessTask {
      * 驳回任务地址
      */
     private String taskRejectAddress;
+
+    /**
+     * 任务创建时间
+     */
+    private String taskCreateTime;
 }

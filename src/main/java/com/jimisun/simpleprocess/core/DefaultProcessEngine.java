@@ -182,6 +182,7 @@ public class DefaultProcessEngine implements ProcessEngine {
             processTask.setFormUrl(formUrl);
             processTask.setTaskAgreeAddress(agreeAddress);
             processTask.setTaskRejectAddress(regectAddress);
+            processTask.setTaskCreateTime(new Date().toString());
             processTaskMapper.insert(processTask);
         }
     }
