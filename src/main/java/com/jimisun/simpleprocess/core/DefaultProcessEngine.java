@@ -43,6 +43,9 @@ public class DefaultProcessEngine implements ProcessEngine {
     @Resource
     private ProcessTaskMapper processTaskMapper;
 
+    @Resource
+    private ProcessEngineExt processEngineExt;
+
     @Override
     public Boolean saveOrUpdateProcessTemplate(ProcessTemplate processTemplate) {
         if (StrUtil.isNotEmpty(processTemplate.getProcessTemplateKey())) {
@@ -151,6 +154,8 @@ public class DefaultProcessEngine implements ProcessEngine {
         //获取下个流程节点
         ProcessNode currentNode = processNodeMap.get(process.getCurrentNodeKey());
         ProcessNode nextProcessNode = processNodeMap.get(currentNode.getNextProcessNodeKey());
+        //执行节点的后置任务
+        processEngineExt.postProcessNodeExt(processId,currentNode.getProcessNodeKey());
         //更改流程实例状态
         process.setCurrentNodeKey(nextProcessNode.getProcessNodeKey());
         process.setCurrentNodeName(nextProcessNode.getProcessNodeName());
@@ -165,6 +170,8 @@ public class DefaultProcessEngine implements ProcessEngine {
                     "此处是执行任务的url地址", "此处是驳回任务的url地址");
         }
         processMapper.updateById(process);
+        //执行节点的前置任务
+        processEngineExt.frontProcessNodeExt(processId,nextProcessNode.getProcessNodeKey());
         return true;
     }
 
@@ -220,6 +227,8 @@ public class DefaultProcessEngine implements ProcessEngine {
 
     @Override
     public Boolean executeProcessTask(String processTaskId, String operator, String opinion) {
+        //执行任务的前置扩展
+        processEngineExt.frontProcessTaskExt(processTaskId);
         //收集信息
         ProcessTask processTask = processTaskMapper.selectById(processTaskId);
         Process process = processMapper.selectById(processTask.getProcessId());
@@ -230,6 +239,8 @@ public class DefaultProcessEngine implements ProcessEngine {
         processTask.setOperator(operator);//设置实际操作人
         processTask.setOperatorTime(new Date().toString());
         processTaskMapper.updateById(processTask);
+        //执行任务的后置扩展
+        processEngineExt.postProcessTaskExt(processTaskId);
         //操作当前节点的其他任务
         if (processNode.getNodeExecuteType().equals("ANY")) {
             //将当前任务标记为已完成，该节点的其他任务标记为取消
