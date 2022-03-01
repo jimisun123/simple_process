@@ -1,11 +1,30 @@
 package com.jimisun.simpleprocess.common;
 
+/**
+ * 流程任务状态枚举类
+ */
 public interface ProcessTaskStatusEnum {
-    Integer CREATE= 1;
 
-    Integer OK = 2;
+    /**
+     * 未处理
+     */
+    String UNTREATED = "untreated";
 
-    Integer CANCEL = 3 ;
+    /**
+     * 已处理
+     */
+    String TREATED = "treated";
 
-    Integer REJECT = 4;
+    /**
+     * 驳回
+     */
+    String REGECTED = "rejected";
+
+
+    /**
+     * 取消
+     */
+    String CANCEL = "cancel";
+
+
 }

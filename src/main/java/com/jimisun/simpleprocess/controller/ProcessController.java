@@ -8,28 +8,17 @@ import javax.annotation.Resource;
 
 @RestController
 @RequestMapping("/process")
-public class ProcessEngineController {
-
+public class ProcessController {
 
     @Resource
     private ProcessEngine processEngine;
 
     @RequestMapping("/createProcess")
     public Object createProcess(String templateKey, String busKey) {
-        return processEngine.createProcess(templateKey, busKey);
+        return processEngine.createProcess(templateKey, busKey,null,null);
     }
 
-    @RequestMapping("/implementProcess")
-    public Object implementProcess(String processId) {
-        return processEngine.implementProcess(processId);
-    }
-
-    @RequestMapping("/rejectProcess")
-    public Object rejectProcess(String processId, String operator) {
-        return processEngine.rejectProcess(processId, operator);
-    }
-
-    @RequestMapping("/executeProcessTask")
+    @RequestMapping("/executeTask")
     public Object executeProcessTask(String processTaskId, String operator, String opinion) {
         return processEngine.executeProcessTask(processTaskId, operator, opinion);
     }
@@ -38,4 +27,6 @@ public class ProcessEngineController {
     public Object rejectTask(String processTaskId, String operator, String opinion) {
         return processEngine.rejectTask(processTaskId, operator, opinion);
     }
+
+
 }

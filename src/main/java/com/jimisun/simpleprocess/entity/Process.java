@@ -17,48 +17,50 @@ import lombok.NoArgsConstructor;
 public class Process {
 
     /**
-     * 流程ID
+     * 流程实例ID
      */
     @TableId(type = IdType.INPUT)
     private String processId;
 
-    /**
-     * 业务key
-     */
-    private String busKey;
 
     /**
-     * 流程模板KEY
+     * 流程模版KEY
      */
     private String processTemplateKey;
 
-    /**
-     * 当前节点KEY
-     */
-    private String currentNodeKey;
 
     /**
-     * 当前节点名称
+     * 流程实例业务KEY
      */
-    private String currentNodeName;
+    private String processBusKey;
+
 
     /**
-     * 当前节点执行类型
+     * 流程实例全局业务数据 此处存储map 也就是说后节点在存储相同的key的数据到map中会覆盖原有的数据  参考activity7
      */
-    private String currentNodeExecuteType;
+    private String processBusData;
 
     /**
-     * 当前节点分发类型
+     * 流程实例全局属性数据 此处存储map 此处主要用户在task||branch_task||open_gateway类型的节点中使用
      */
-    private String currentNodeDistributeType;
+    private String processAttributeData;
 
     /**
-     * 流程状态
+     * 流程实例状态  ref: ProcessStatusEnum
      */
-    private Integer processStatus;
+    private String processStatus;
+
 
     /**
-     * 流程数据
+     * 流程开始时间
      */
-    private String processData;
+    private String processOpenTime;
+
+
+    /**
+     * 流程结束时间
+     */
+    private String processCloseTime;
+
+
 }

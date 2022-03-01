@@ -1,11 +1,24 @@
 package com.jimisun.simpleprocess.common;
 
+/**
+ * 流程实例状态枚举类
+ */
 public interface ProcessStatusEnum {
 
-    Integer RUN= 1;
+    /**
+     * 正在执行
+     */
+    String RUN = "run";
 
-    Integer COMPLETED= 2;
+    /**
+     * 暂停
+     */
+    String PAUSE = "pause";
 
-    Integer CANCEL = 3 ;
+    /**
+     * 结束
+     */
+    String END = "end";
+
 
 }
