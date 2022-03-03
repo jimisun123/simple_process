@@ -16,6 +16,7 @@ import com.jimisun.simpleprocess.entity.ProcessNodeDefine;
 import com.jimisun.simpleprocess.entity.ProcessTask;
 import com.jimisun.simpleprocess.entity.ProcessTemplate;
 import com.jimisun.simpleprocess.service.ProcessTemplateService;
+import com.jimisun.simpleprocess.utils.GroovyUtil;
 import com.jimisun.simpleprocess.utils.ProcessTemplateNodeDefineUtil;
 import com.jimisun.simpleprocess.utils.StandardUtil;
 import org.springframework.stereotype.Component;
@@ -216,6 +217,10 @@ public class DefaultProcessEngine implements ProcessEngine {
         ProcessTemplate processTemplate = processTemplateService.getProcessTemplateByProcessTemplateKey(process.getProcessTemplateKey());
         ProcessNodeDefine nodeDefine = ProcessTemplateNodeDefineUtil.getNodeDefine(processTemplate, jumpNodeKey);
 
+        if (ObjectUtil.isEmpty(nodeDefine)) {
+            throw new RuntimeException("节点定义不存在:" + jumpNodeKey);
+        }
+
         //step2 重新发布jumpNodeKey流程节点的任务
         if (nodeDefine.getNodeType().equals(NodeTypeEnum.START)) {
             //如果要跳转的流程节点是START类型和CLOSE_GATEWAY类型的节点 需要跳过该节点继续向后面节点执行
@@ -240,8 +245,9 @@ public class DefaultProcessEngine implements ProcessEngine {
         } else if (nodeDefine.getNodeType().equals(NodeTypeEnum.OPEN_GATEWAY)) {
             //根据开始网关发布流程任务
             String openGatewayScript = nodeDefine.getOpenGatewayScript();
-            List<String> nodeKeys = Arrays.asList(openGatewayScript.split(","));
-            for (String nodeKey : nodeKeys) {
+            Map attributeDateMap = JSONUtil.toBean(process.getProcessAttributeData(), Map.class);
+            String[] nodeArray = (String[]) GroovyUtil.eval(openGatewayScript, attributeDateMap);
+            for (String nodeKey : nodeArray) {
                 jumpProcessNode(process.getProcessId(), nodeKey);
             }
         } else if (nodeDefine.getNodeType().equals(NodeTypeEnum.CLOSE_GATEWAY)) {
