@@ -2,6 +2,7 @@ package com.jimisun.simpleprocess.core;
 
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -45,6 +46,8 @@ public class DefaultProcessEngine implements ProcessEngine {
     @Resource
     private ProcessTaskMapper processTaskMapper;
 
+    @Resource
+    private ProcessEngineExt processEngineExt;
 
     /**
      * 创建流程实例
@@ -105,6 +108,7 @@ public class DefaultProcessEngine implements ProcessEngine {
         processTask.setProcessTaskStatus(ProcessTaskStatusEnum.TREATED);
         processTask.setProcessTaskCloseTime(StandardUtil.getStandarStrTime());
         processTaskMapper.updateById(processTask);
+
 
         //step3 判断当前任务所属节点的执行类型
         if (nodeDefine.getNodeTaskExecuteType().equals(NodeExecuteTypeEnum.ALL)) {
@@ -197,6 +201,8 @@ public class DefaultProcessEngine implements ProcessEngine {
             changeAllUntreatedProcessTask(process, nodeDefine, ProcessTaskStatusEnum.CANCEL);
         }
 
+        processEngineExt.ProcessTaskRejectCompleteExt(processTaskId); //向外发布事件
+
         //step3 重新发布任务
         jumpProcessNode(process.getProcessId(), preNodeDefine.getNodeKey());
         return true;
@@ -216,6 +222,15 @@ public class DefaultProcessEngine implements ProcessEngine {
         Process process = processMapper.selectById(processId);
         ProcessTemplate processTemplate = processTemplateService.getProcessTemplateByProcessTemplateKey(process.getProcessTemplateKey());
         ProcessNodeDefine nodeDefine = ProcessTemplateNodeDefineUtil.getNodeDefine(processTemplate, jumpNodeKey);
+
+
+        if (ObjectUtil.notEqual(nodeDefine.getNodeKey(), "start")) { //向外发布事件
+            ProcessNodeDefine preNodeDefine = ProcessTemplateNodeDefineUtil.getPreNodeDefine(processTemplate, jumpNodeKey);
+            if (ObjectUtil.isNotEmpty(preNodeDefine) && StrUtil.isNotEmpty(preNodeDefine.getNodeKey())){
+                processEngineExt.ProcessNodeCompleteExt(processId, preNodeDefine.getNodeKey());
+            }
+        }
+
 
         if (ObjectUtil.isEmpty(nodeDefine)) {
             throw new RuntimeException("节点定义不存在:" + jumpNodeKey);
@@ -271,8 +286,9 @@ public class DefaultProcessEngine implements ProcessEngine {
      */
     private void releaseTask(ProcessTemplate processTemplate, Process process, ProcessNodeDefine nodeDefine) {
         String nodeActors = nodeDefine.getNodeActors();
-        List<String> actors = Arrays.asList(nodeActors.split(","));
-        for (String actor : actors) {
+        Map attributeDateMap = JSONUtil.toBean(process.getProcessAttributeData(), Map.class);
+        String[] nodeArray = (String[]) GroovyUtil.eval(nodeActors, attributeDateMap);
+        for (String actor : nodeArray) {
             ProcessTask processTask = new ProcessTask();
             processTask.setProcessTaskId(StandardUtil.getStandardId());
             processTask.setProcessNodeKey(nodeDefine.getNodeKey());

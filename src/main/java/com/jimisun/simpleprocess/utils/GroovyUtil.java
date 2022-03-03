@@ -1,6 +1,5 @@
 package com.jimisun.simpleprocess.utils;
 
-import cn.hutool.core.lang.Dict;
 import cn.hutool.core.util.ObjectUtil;
 import groovy.lang.Binding;
 import groovy.lang.GroovyShell;

@@ -1,27 +1,38 @@
-//package com.jimisun.simpleprocess.core;
-//
-//import org.springframework.stereotype.Component;
-//
-///**
-// * 流程扩展功能
-// */
-//@Component
-//public class ProcessEngineExt {
-//
-//
-//    public void frontProcessNodeExt(String processId,String nodeKey){
-//        System.out.println("接收到节点扩展前置扩展"+processId+","+nodeKey);
-//    }
-//
-//    public void postProcessNodeExt(String processId,String nodeKey){
-//        System.out.println("接收到节点扩展后置扩展"+processId+","+nodeKey);
-//    }
-//
-//    public void frontProcessTaskExt(String processTaskId){
-//        System.out.println("接收到任务扩展前置扩展"+processTaskId);
-//    }
-//
-//    public void postProcessTaskExt(String processTaskId){
-//        System.out.println("接收到任务扩展后置扩展"+processTaskId);
-//    }
-//}
+package com.jimisun.simpleprocess.core;
+
+import com.jimisun.simpleprocess.dao.ProcessMapper;
+import com.jimisun.simpleprocess.entity.Process;
+import com.jimisun.simpleprocess.utils.StandardUtil;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
+import java.util.HashMap;
+
+/**
+ * 流程扩展功能
+ */
+@Component
+public class ProcessEngineExt {
+
+    @Resource
+    private ProcessMapper processMapper;
+
+
+    public void ProcessNodeCompleteExt(String processId, String nodeKey) {
+        System.out.println("接收到流程节点的完成事件" + processId + "," + nodeKey);
+
+        //一下业务为demo  实际请替换成真正业务。。。。。。。。。。。。。。。。。。
+        if (nodeKey.equals("start")) {
+            Process process = processMapper.selectById(processId);
+            HashMap params = new HashMap();
+            params.put("yysusers", "zhangsan,lisi,wangwu,zhaoliu");
+            process = StandardUtil.setProcessAttribute(process, params);
+            processMapper.updateById(process);
+        }
+    }
+
+
+    public void ProcessTaskRejectCompleteExt(String processTaskId) {
+        System.out.println("接收到流程任务的驳回完成事件" + processTaskId);
+    }
+}
