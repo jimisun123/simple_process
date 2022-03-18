@@ -173,7 +173,7 @@ public class DefaultProcessEngine implements ProcessEngine {
         //step2 将当前节点的流程任务标记为取消
         if (nodeDefine.getNodeType().equals(NodeTypeEnum.TASK)) {
             //判断是否可以驳回
-            ProcessNodeDefine startNode = ProcessTemplateNodeDefineUtil.getNextNodeDefine(processTemplate, "start");
+            ProcessNodeDefine startNode = ProcessTemplateNodeDefineUtil.getNodeDefine(processTemplate, "start");
             if (startNode.getNextNodeKey().equals(nodeDefine.getNodeKey())) {
                 throw new RuntimeException("已经是开始节点无法再被驳回！");
             }
