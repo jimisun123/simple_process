@@ -24,6 +24,19 @@ public class ProcessTask {
     private String processTaskId;
 
     /**
+     * 流程任务所属流程定义
+     */
+    private String processTemplateKey;
+
+
+    /**
+     * 流程任务所属流程定义名称
+     */
+    private String processTemplateName;
+
+
+
+    /**
      * 所属流程节点key
      */
     private String processNodeKey;
@@ -39,10 +52,6 @@ public class ProcessTask {
      */
     private String processId;
 
-    /**
-     * 所属流程模板Key
-     */
-    private String processTemplateKey;
 
     /**
      * 流程任务执行者 当节点定义的派发类型为GROUP时候 此处存储的是GROUP名称 如果是USER类型 此处存储的是USER名称

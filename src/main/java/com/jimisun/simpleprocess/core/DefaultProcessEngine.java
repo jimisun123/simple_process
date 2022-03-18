@@ -223,6 +223,9 @@ public class DefaultProcessEngine implements ProcessEngine {
         ProcessTemplate processTemplate = processTemplateService.getProcessTemplateByProcessTemplateKey(process.getProcessTemplateKey());
         ProcessNodeDefine nodeDefine = ProcessTemplateNodeDefineUtil.getNodeDefine(processTemplate, jumpNodeKey);
 
+        if (ObjectUtil.isEmpty(nodeDefine)) {
+            throw new RuntimeException("节点定义不存在:" + jumpNodeKey);
+        }
 
         if (ObjectUtil.notEqual(nodeDefine.getNodeKey(), "start")) { //向外发布事件
             ProcessNodeDefine preNodeDefine = ProcessTemplateNodeDefineUtil.getPreNodeDefine(processTemplate, jumpNodeKey);
@@ -239,15 +242,18 @@ public class DefaultProcessEngine implements ProcessEngine {
         //step2 重新发布jumpNodeKey流程节点的任务
         if (nodeDefine.getNodeType().equals(NodeTypeEnum.START)) {
             //如果要跳转的流程节点是START类型和CLOSE_GATEWAY类型的节点 需要跳过该节点继续向后面节点执行
-            ProcessTask processTask = new ProcessTask(StandardUtil.getStandardId(), nodeDefine.getNodeKey(), nodeDefine.getNodeName(),
-                    process.getProcessId(), processTemplate.getProcessTemplateKey(), "超级管理员", "超级管理员", "", process.getProcessBusData(), "",
+            ProcessTask processTask = new ProcessTask(StandardUtil.getStandardId(), processTemplate.getProcessTemplateKey(),
+                    processTemplate.getProcessTemplateName(),nodeDefine.getNodeKey(), nodeDefine.getNodeName(),
+                    process.getProcessId(),  "超级管理员", "超级管理员", "", process.getProcessBusData(), "",
                     nodeDefine.getNodeType(), ProcessTaskStatusEnum.TREATED, StandardUtil.getStandarStrTime(), StandardUtil.getStandarStrTime(), "流程引擎跳过开始节点");
             processTaskMapper.insert(processTask);
             jumpProcessNode(process.getProcessId(), nodeDefine.getNextNodeKey());
         } else if (nodeDefine.getNodeType().equals(NodeTypeEnum.END)) {
             //如果要跳转的流程节点是END类型的节点 自动插入一条流程任务标记为完成 更改流程实例的状态
-            ProcessTask processTask = new ProcessTask(StandardUtil.getStandardId(), nodeDefine.getNodeKey(), nodeDefine.getNodeName(),
-                    process.getProcessId(), processTemplate.getProcessTemplateKey(), "超级管理员", "超级管理员", "", process.getProcessBusData(), "",
+            ProcessTask processTask = new ProcessTask(StandardUtil.getStandardId(),
+                    processTemplate.getProcessTemplateKey(),
+                    processTemplate.getProcessTemplateName(),nodeDefine.getNodeKey(), nodeDefine.getNodeName(),
+                    process.getProcessId(), "超级管理员", "超级管理员", "", process.getProcessBusData(), "",
                     nodeDefine.getNodeType(), ProcessTaskStatusEnum.TREATED, StandardUtil.getStandarStrTime(), StandardUtil.getStandarStrTime(), "流程引擎自动执行结束节点");
             processTaskMapper.insert(processTask);
             process.setProcessStatus(ProcessStatusEnum.END);
@@ -267,8 +273,8 @@ public class DefaultProcessEngine implements ProcessEngine {
             }
         } else if (nodeDefine.getNodeType().equals(NodeTypeEnum.CLOSE_GATEWAY)) {
             //如果要跳转的流程节点是CLOSE_GATEWAY类型的节点 需要跳过该节点继续向后面节点执行
-            ProcessTask processTask = new ProcessTask(StandardUtil.getStandardId(), nodeDefine.getNodeKey(), nodeDefine.getNodeName(),
-                    process.getProcessId(), processTemplate.getProcessTemplateKey(), "超级管理员", "超级管理员", "",
+            ProcessTask processTask = new ProcessTask(StandardUtil.getStandardId(), processTemplate.getProcessTemplateKey(),processTemplate.getProcessTemplateName(),nodeDefine.getNodeKey(), nodeDefine.getNodeName(),
+                    process.getProcessId(),  "超级管理员", "超级管理员", "",
                     process.getProcessBusData(), "", nodeDefine.getNodeType(), ProcessTaskStatusEnum.TREATED, StandardUtil.getStandarStrTime(),
                     StandardUtil.getStandarStrTime(), "流程引擎跳过结束网关");
             processTaskMapper.insert(processTask);
@@ -291,10 +297,15 @@ public class DefaultProcessEngine implements ProcessEngine {
         for (String actor : nodeArray) {
             ProcessTask processTask = new ProcessTask();
             processTask.setProcessTaskId(StandardUtil.getStandardId());
+            //封装流程定义信息
+            processTask.setProcessTemplateKey(processTemplate.getProcessTemplateKey());
+            processTask.setProcessTemplateName(processTemplate.getProcessTemplateName());
+            //封装流程实例信息
+            processTask.setProcessId(process.getProcessId());
+            //封装流程节点信息
             processTask.setProcessNodeKey(nodeDefine.getNodeKey());
             processTask.setProcessNodeName(nodeDefine.getNodeName());
-            processTask.setProcessId(process.getProcessId());
-            processTask.setProcessTemplateKey(processTemplate.getProcessTemplateKey());
+            //封装流程任务信息
             processTask.setProcessTaskActor(actor);
             processTask.setProcessTaskFormUrl(nodeDefine.getNodeFormUrl());
             processTask.setProcessBusDataSnapshot(process.getProcessBusData());
