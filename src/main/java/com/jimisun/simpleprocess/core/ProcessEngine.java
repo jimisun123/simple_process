@@ -21,6 +21,17 @@ public interface ProcessEngine {
     public Boolean createProcess(String processTemplateKey, String processBusKey, Map processBusData, Map processAttributeData);
 
 
+    /**
+     * 修改流程实例状态
+     * 暂停流程 ： 暂停流程会将流程实例对状态该为暂停，保持其流程任务
+     * 关闭流程 ： 关闭流程会将流程实例对状态该为关闭，并关闭其流程任务
+     *
+     * @param processId
+     * @param operator
+     * @param opinion
+     * @return
+     */
+    Boolean changeProcessStatus(String processId, String operator, String opinion, String status);
 
 
     /**
@@ -43,4 +54,6 @@ public interface ProcessEngine {
      * @return
      */
     public Boolean rejectTask(String processTaskId, String operator, String opinion);
+
+
 }

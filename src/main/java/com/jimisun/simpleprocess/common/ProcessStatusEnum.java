@@ -16,6 +16,11 @@ public interface ProcessStatusEnum {
     String PAUSE = "pause";
 
     /**
+     * 关闭
+     */
+    String CLOSE = "close";
+
+    /**
      * 结束
      */
     String END = "end";

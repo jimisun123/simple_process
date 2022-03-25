@@ -20,6 +20,7 @@ import com.jimisun.simpleprocess.service.ProcessTemplateService;
 import com.jimisun.simpleprocess.utils.GroovyUtil;
 import com.jimisun.simpleprocess.utils.ProcessTemplateNodeDefineUtil;
 import com.jimisun.simpleprocess.utils.StandardUtil;
+import org.apache.ibatis.annotations.Case;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,6 +85,36 @@ public class DefaultProcessEngine implements ProcessEngine {
         return true;
     }
 
+
+    /**
+     * 修改流程实例状态
+     *
+     * @param processId 流程实例
+     * @param operator  操作人
+     * @param opinion   意见
+     * @param status    状态
+     * @return
+     */
+    @Override
+    public Boolean changeProcessStatus(String processId, String operator, String opinion, String status) {
+        if (ObjectUtil.isNotEmpty(status)) {
+            switch (status) {
+                case ProcessStatusEnum.PAUSE:
+                    Process processP = processMapper.selectById(processId);
+                    processP.setProcessStatus(ProcessStatusEnum.PAUSE);
+                    processMapper.updateById(processP);
+                    return true;
+                case ProcessStatusEnum.CLOSE:
+                    Process processC = processMapper.selectById(processId);
+                    processC.setProcessStatus(ProcessStatusEnum.CLOSE);
+                    processC.setProcessStatus(ProcessStatusEnum.CLOSE);
+                    processMapper.updateById(processC);
+                    changeAllUntreatedProcessTask(processC, null, ProcessStatusEnum.CLOSE);
+                    return true;
+            }
+        }
+        return true;
+    }
 
     /**
      * 完成流程任务
@@ -229,7 +260,7 @@ public class DefaultProcessEngine implements ProcessEngine {
 
         if (ObjectUtil.notEqual(nodeDefine.getNodeKey(), "start")) { //向外发布事件
             ProcessNodeDefine preNodeDefine = ProcessTemplateNodeDefineUtil.getPreNodeDefine(processTemplate, jumpNodeKey);
-            if (ObjectUtil.isNotEmpty(preNodeDefine) && StrUtil.isNotEmpty(preNodeDefine.getNodeKey())){
+            if (ObjectUtil.isNotEmpty(preNodeDefine) && StrUtil.isNotEmpty(preNodeDefine.getNodeKey())) {
                 processEngineExt.ProcessNodeCompleteExt(processId, preNodeDefine.getNodeKey());
             }
         }
@@ -243,8 +274,8 @@ public class DefaultProcessEngine implements ProcessEngine {
         if (nodeDefine.getNodeType().equals(NodeTypeEnum.START)) {
             //如果要跳转的流程节点是START类型和CLOSE_GATEWAY类型的节点 需要跳过该节点继续向后面节点执行
             ProcessTask processTask = new ProcessTask(StandardUtil.getStandardId(), processTemplate.getProcessTemplateKey(),
-                    processTemplate.getProcessTemplateName(),nodeDefine.getNodeKey(), nodeDefine.getNodeName(),
-                    process.getProcessId(),  "超级管理员", "超级管理员", "", process.getProcessBusData(), "",
+                    processTemplate.getProcessTemplateName(), nodeDefine.getNodeKey(), nodeDefine.getNodeName(),
+                    process.getProcessId(), "超级管理员", "超级管理员", "", process.getProcessBusData(), "",
                     nodeDefine.getNodeType(), ProcessTaskStatusEnum.TREATED, StandardUtil.getStandarStrTime(), StandardUtil.getStandarStrTime(), "流程引擎跳过开始节点");
             processTaskMapper.insert(processTask);
             jumpProcessNode(process.getProcessId(), nodeDefine.getNextNodeKey());
@@ -252,7 +283,7 @@ public class DefaultProcessEngine implements ProcessEngine {
             //如果要跳转的流程节点是END类型的节点 自动插入一条流程任务标记为完成 更改流程实例的状态
             ProcessTask processTask = new ProcessTask(StandardUtil.getStandardId(),
                     processTemplate.getProcessTemplateKey(),
-                    processTemplate.getProcessTemplateName(),nodeDefine.getNodeKey(), nodeDefine.getNodeName(),
+                    processTemplate.getProcessTemplateName(), nodeDefine.getNodeKey(), nodeDefine.getNodeName(),
                     process.getProcessId(), "超级管理员", "超级管理员", "", process.getProcessBusData(), "",
                     nodeDefine.getNodeType(), ProcessTaskStatusEnum.TREATED, StandardUtil.getStandarStrTime(), StandardUtil.getStandarStrTime(), "流程引擎自动执行结束节点");
             processTaskMapper.insert(processTask);
@@ -273,8 +304,8 @@ public class DefaultProcessEngine implements ProcessEngine {
             }
         } else if (nodeDefine.getNodeType().equals(NodeTypeEnum.CLOSE_GATEWAY)) {
             //如果要跳转的流程节点是CLOSE_GATEWAY类型的节点 需要跳过该节点继续向后面节点执行
-            ProcessTask processTask = new ProcessTask(StandardUtil.getStandardId(), processTemplate.getProcessTemplateKey(),processTemplate.getProcessTemplateName(),nodeDefine.getNodeKey(), nodeDefine.getNodeName(),
-                    process.getProcessId(),  "超级管理员", "超级管理员", "",
+            ProcessTask processTask = new ProcessTask(StandardUtil.getStandardId(), processTemplate.getProcessTemplateKey(), processTemplate.getProcessTemplateName(), nodeDefine.getNodeKey(), nodeDefine.getNodeName(),
+                    process.getProcessId(), "超级管理员", "超级管理员", "",
                     process.getProcessBusData(), "", nodeDefine.getNodeType(), ProcessTaskStatusEnum.TREATED, StandardUtil.getStandarStrTime(),
                     StandardUtil.getStandarStrTime(), "流程引擎跳过结束网关");
             processTaskMapper.insert(processTask);
@@ -369,7 +400,6 @@ public class DefaultProcessEngine implements ProcessEngine {
         List<ProcessTask> processTasks = processTaskMapper.selectList(otherProcessTaskLambdaQueryWrapper);
         return processTasks;
     }
-
 
     /**
      * 查询当前流程实例的流程节点下是否还存在未处理的任务
