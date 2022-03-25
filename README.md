@@ -1,5 +1,4 @@
 # simple_process
-master版本基于batch2分支开发
 
 - [X] 支持分支流程
 - [X] 支持动态语法
